@@ -12,50 +12,50 @@
     
     
     <script type="text/javascript">
-	    function sqr(i) {
-	        return i * i;
-	    }
-	      
-	    function distance(point1, point2) {
-	        return Math.sqrt(
-	        		sqr(point1.x - point2.x) + sqr(point1.y - point2.y));
-	    }
-	    
-	    function distanceSqr(point1, point2) {
-	        return sqr(point1.x - point2.x) + sqr(point1.y - point2.y);
-	    }
-	    
-	    // two dimensional dot product
+        function sqr(i) {
+            return i * i;
+        }
+          
+        function distance(point1, point2) {
+            return Math.sqrt(
+                    sqr(point1.x - point2.x) + sqr(point1.y - point2.y));
+        }
+        
+        function distanceSqr(point1, point2) {
+            return sqr(point1.x - point2.x) + sqr(point1.y - point2.y);
+        }
+        
+        // two dimensional dot product
         function dot2(v1, v2) {
             return v1.x * v2.x + v1.y * v2.y;
         }
-	    
-	    
-	    /**
-	     * return true if a location is visible within viewport
-	     * 
+        
+        
+        /**
+         * return true if a location is visible within container
+         * 
          * globals: map
-	     **/
-	    function isLocationInView(latLng) {
-	        mapBounds = map.getBounds();
-	        
-	        if (latLng.lat > mapBounds.getNorth() ||
-	        		latLng.lat < mapBounds.getSouth() ||
-	        		latLng.lng < mapBounds.getWest() ||
-	        		latLng.lng > mapBounds.getEast()) {
-	        	return false;
-	        }
-	        
-	        return true;
-	    }
-	    
-	    /**
-	     * return true if point is within container
+         **/
+        function isLocationInView(latLng) {
+            mapBounds = map.getBounds();
+            
+            if (latLng.lat > mapBounds.getNorth() ||
+                    latLng.lat < mapBounds.getSouth() ||
+                    latLng.lng < mapBounds.getWest() ||
+                    latLng.lng > mapBounds.getEast()) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        /**
+         * return true if point is within container
          *
          * global: map
-	     **/
-	    function isPointInView(point) {
-	        mapSize = map.getSize();
+         **/
+        function isPointInView(point) {
+            mapSize = map.getSize();
             
             if (point.x < 0 ||
                     point.x > mapSize.x ||
@@ -65,108 +65,102 @@
             }
             
             return true;
-	    }
+        }
 
-	    
-	    /**
-	     * get the point on the line segment l1-l2 that is closest to p
-	     **/
-	    function getClosestLineSegmentPoint(l1, l2, p) {
-	        // l1 and l2 equal?
-	        var distanceL1L2Sqr = distanceSqr(l1, l2);
-	        if (distanceL1L2Sqr == 0) {
-	            return l1;
-	        }
-	        
-	        // get orthogonal projection of p on line through l1-l2
-	        // line parameterized as l = l1 + t * (l2 - l1)
-	        var v1 = {x: p.x - l1.x,
-	                  y: p.y - l1.y};   // vector l1->p
-	        var v2 = {x: l2.x - l1.x,
-	                  y: l2.y - l1.y};  // vector l1->l2
-	        var t = dot2(v1, v2) / distanceL1L2Sqr;
-	        
-	        if (t <= 0.0) {
-	            return l1;
-	        } else if (t >= 1.0) {
-	            return l2;
-	        } else {
-	            //alert("else");
-	            var pOut = new L.Point(
-	            		l1.x + t * (l2.x - l1.x),
-	                    l1.y + t * (l2.y - l1.y)); // projected point
-	            return pOut;
-	        }
-	    }
-	    
-	    /**
-	     * get the point on the view port border that is closest to given
-	     * point
-	     * 
-	     * globals: map
-	     **/
-	    function getClosestViewportBorderPoint(p) {
-	        var pOut, pTmp;
-	        var pOutDistance, pTmpDistance;
-	        var mapSize = map.getSize();
-	        
-	        pOut = getClosestLineSegmentPoint(
-	                new L.Point(0.0, 0.0),
-	                new L.Point(0.0, mapSize.y),
-	                p);
-	        pOutDistance = distanceSqr(p, pOut);
-	        
-	        
-	        pTmp = getClosestLineSegmentPoint(
-	        		new L.Point(0.0, 0.0),
+        
+        /**
+         * get the point on the line segment l1-l2 that is closest to p
+         **/
+        function getClosestLineSegmentPoint(l1, l2, p) {
+            // l1 and l2 equal?
+            var distanceL1L2Sqr = distanceSqr(l1, l2);
+            if (distanceL1L2Sqr == 0) {
+                return l1;
+            }
+            
+            // get orthogonal projection of p on line through l1-l2
+            // line parameterized as l = l1 + t * (l2 - l1)
+            var v1 = {x: p.x - l1.x,
+                      y: p.y - l1.y};   // vector l1->p
+            var v2 = {x: l2.x - l1.x,
+                      y: l2.y - l1.y};  // vector l1->l2
+            var t = dot2(v1, v2) / distanceL1L2Sqr;
+            
+            if (t <= 0.0) {
+                return l1;
+            } else if (t >= 1.0) {
+                return l2;
+            } else {
+                var pOut = new L.Point(
+                        l1.x + t * (l2.x - l1.x),
+                        l1.y + t * (l2.y - l1.y)); // projected point
+                return pOut;
+            }
+        }
+        
+        /**
+         * get the point on the view port border that is closest to given
+         * point
+         * 
+         * globals: map
+         **/
+        function getClosestViewportBorderPoint(p) {
+            var pOut, pTmp;
+            var pOutDistance, pTmpDistance;
+            var mapSize = map.getSize();
+            
+            pOut = getClosestLineSegmentPoint(
+                    new L.Point(0.0, 0.0),
+                    new L.Point(0.0, mapSize.y),
+                    p);
+            pOutDistance = distanceSqr(p, pOut);
+            
+            
+            pTmp = getClosestLineSegmentPoint(
+                    new L.Point(0.0, 0.0),
                     new L.Point(mapSize.x, 0.0),
-	                p);
-	        pTmpDistance = distanceSqr(p, pTmp);        
-	        if (pTmpDistance < pOutDistance) {
-	            pOut = pTmp;
-	            pOutDistance = pTmpDistance;
-	        }
-	        
-	        pTmp = getClosestLineSegmentPoint(
-	        		new L.Point(mapSize.x, 0.0),
-	        		new L.Point(mapSize.x, mapSize.y),
-	                p);
-	        pTmpDistance = distanceSqr(p, pTmp);        
-	        if (pTmpDistance < pOutDistance) {
-	            pOut = pTmp;
-	            pOutDistance = pTmpDistance;
-	        }
-	        
-	        pTmp = getClosestLineSegmentPoint(
-	        		new L.Point(0.0, mapSize.y),
-	        		new L.Point(mapSize.x, mapSize.y),
-	                p);
-	        pTmpDistance = distanceSqr(p, pTmp);        
-	        if (pTmpDistance < pOutDistance) {
-	            pOut = pTmp;
-	            pOutDistance = pTmpDistance;
-	        }        
-	        return pOut;
-	    }
+                    p);
+            pTmpDistance = distanceSqr(p, pTmp);        
+            if (pTmpDistance < pOutDistance) {
+                pOut = pTmp;
+                pOutDistance = pTmpDistance;
+            }
+            
+            pTmp = getClosestLineSegmentPoint(
+                    new L.Point(mapSize.x, 0.0),
+                    new L.Point(mapSize.x, mapSize.y),
+                    p);
+            pTmpDistance = distanceSqr(p, pTmp);        
+            if (pTmpDistance < pOutDistance) {
+                pOut = pTmp;
+                pOutDistance = pTmpDistance;
+            }
+            
+            pTmp = getClosestLineSegmentPoint(
+                    new L.Point(0.0, mapSize.y),
+                    new L.Point(mapSize.x, mapSize.y),
+                    p);
+            pTmpDistance = distanceSqr(p, pTmp);        
+            if (pTmpDistance < pOutDistance) {
+                pOut = pTmp;
+                pOutDistance = pTmpDistance;
+            }        
+            return pOut;
+        }
     
-	    /**
-	     * move callback
-	     *
-	     * global: map, locationCircle, circle
-	     */
+        /**
+         * move callback
+         *
+         * global: map, locationCircle, circle
+         */
         function onMove(e) {
-        	var xy = map.latLngToContainerPoint(locationCircle);
+            // get container point for location
+            var xy = map.latLngToContainerPoint(locationCircle);
             
             if (isPointInView(xy)) {
-            	circle.setRadius(20);
+                circle.setRadius(20);
             } else {
                 var borderPoint = getClosestViewportBorderPoint(xy);
-                
-                //var borderPointLocation = 
-                //        map.containerPointToLatLng(borderPoint);
-                
-                //var borderLocationDistance = 
-                //        borderPointLocation.distanceTo(locationCircle);
                 
                 var borderPointDistance = xy.distanceTo(borderPoint);
 
@@ -174,23 +168,33 @@
             }
         }
         
-	    var locationCircle = new L.LatLng(51, 13);
         
-	    var map = L.map('map').setView(locationCircle, 8);
-	    
-	    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        /*****************************************************************/
+        
+        // don't use variable 'location' - is used by leaflet internally
+        var locationCircle = new L.LatLng(51, 13);
+        
+        var map = L.map('map');
+        
+        map.setView(locationCircle, 8);
+        
+        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: ''
         }).addTo(map);
-	    map.on("move", onMove);
-	    
-	    
-    	var circle = L.circleMarker([51, 13], {
-    	    color: 'black',
-    	    fillColor: 'none'
-    	}).addTo(map);
-    	
-    	circle.setRadius(20);
+        
+        map.on("move", onMove); // set callback
+        
+        // create a circle marker - has fixed radius
+        // http://leafletjs.com/reference.html#path-options
+        // http://leafletjs.com/reference.html#circlemarker
+        var circle = L.circleMarker(locationCircle, {
+            color: 'black',
+            opacity: 1.0,
+            fillColor: 'black'
+        }).addTo(map);
+        
+        circle.setRadius(20);
     
     </script>
 </body>
